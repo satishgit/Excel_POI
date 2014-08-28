@@ -10,58 +10,25 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
 
-import org.apache.poi.ss.formula.functions.Column;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class WriteExcelDemo 
+public class WriteExcelDemopld 
 {
-	 public static String sExcelPath = System.getProperty("user.dir")+ "/";
+	 public static String sExcelPath = System.getProperty("user.dir")+ "/poi_demo.xlsx";
 
 	 public static String excelForManualInput = System.getProperty("user.dir")+ "/manual_input.xlsx";
 
     
 	public static void main(String[] args) throws Exception {
-		
-		String ExcelFileName = "";
-		String workSheetToUpdate = "";
-		String seqenceNumber = "";
-		String updateValue = "";
-		
-		if(args.length==4)
-		{
-		
-			ExcelFileName = args[0];
-			workSheetToUpdate = args[1];
-			seqenceNumber = args[2];
-			updateValue = args[3];
-			
-		}else if(args.length==3)
-		{
-			ExcelFileName = args[0];
-			workSheetToUpdate = args[1];
-			updateValue = args[2];
-				
-		}
-		
-		System.out.println("ExcelFileName: "+ExcelFileName );
-		System.out.println("ExcelWorkSheet: "+workSheetToUpdate );
-		System.out.println("seqenceNumber: "+seqenceNumber );
-		System.out.println("updateValue: "+updateValue );
-		
-		WriteExcelDemo writeExcelDemo = new WriteExcelDemo();
+		WriteExcelDemopld writeExcelDemo = new WriteExcelDemopld();
 
 		Map<String, Object[]> data = writeExcelDemo.readHardCodedData();
 		//		Map<String, Object[]> data = writeExcelDemo.readMySQLData();
 		
-		writeExcelDemo.writeDataToexcelSheet(ExcelFileName,data,workSheetToUpdate,seqenceNumber,updateValue);
-		
-		
-		
-		
-		
+		writeExcelDemo.writeDataToexcelSheet(data);
 //		
 	}
 	
@@ -76,23 +43,23 @@ public class WriteExcelDemo
 	
 	
 	
-	private void writeDataToexcelSheet(String excelFileName ,Map<String, Object[]> data,String workSheetToUpdate,String seqenceNumber,String updateValue) throws IOException 
+	private void writeDataToexcelSheet(Map<String, Object[]> data) throws IOException 
 	{
 
 		 //Read the spreadsheet that needs to be updated
-        FileInputStream inputExcelFile = new FileInputStream(new File(sExcelPath + excelFileName));
+        FileInputStream input_document = new FileInputStream(new File(sExcelPath));
        
-        XSSFWorkbook workbook = new XSSFWorkbook(inputExcelFile); 
+        XSSFWorkbook workbook = new XSSFWorkbook(input_document); 
          
-        XSSFSheet employeeDataSheet = workbook.getSheet("Employee Data");
+        XSSFSheet sheet = workbook.getSheet("Employee Data");
 
-        XSSFSheet updateSheet = workbook.getSheet(workSheetToUpdate);
+        XSSFSheet updateSheet = workbook.getSheet("update");
 
-        System.out.println("sheet.getLastRowNum()>>> "+employeeDataSheet.getLastRowNum());
+        System.out.println("sheet.getLastRowNum()>>> "+sheet.getLastRowNum());
         
         //Iterate over data and write to sheet
         Set<String> keyset = data.keySet();
-        int rownum = employeeDataSheet.getLastRowNum()+1;
+        int rownum = sheet.getLastRowNum()+1;
         int updateSheetRowNum = updateSheet.getLastRowNum()+1;
         int updateRowNumber = 0;
         
@@ -100,7 +67,7 @@ public class WriteExcelDemo
         for (String key : keyset)
         {
             
-        	Row row = employeeDataSheet.createRow(rownum++);
+        	Row row = sheet.createRow(rownum++);
             Object [] objArr = data.get(key);
             int cellnum = 0;
             for (Object obj : objArr)
@@ -111,56 +78,33 @@ public class WriteExcelDemo
                 else if(obj instanceof Integer)
                     cell.setCellValue((Integer)obj);
             }
-            int employeeDataSheetRowNumber = row.getRowNum() + 1;
+            int rowNumber = row.getRowNum() + 1;
             if(flag )
             {
-            	updateRowNumber = employeeDataSheetRowNumber;
+            	updateRowNumber = rowNumber;
             	flag =false;
             }
             
             
             
-            System.out.println("row number>> "+employeeDataSheetRowNumber +" ID:"+objArr[0]);
+            System.out.println("row number>> "+rowNumber +" ID:"+objArr[0]);
         }
         
         try
         {
-//        	Row row = updateSheet.createRow(updateSheetRowNum);
-//        	for(int i=0;i<2;i++)
-//        	{
-//                Cell cell = row.createCell(i);
-//                if(i==0)
-//                	cell.setCellValue(updateRowNumber);
-//                else
-//                	cell.setCellValue("store value with your logic");
-//
-//        	}
-//        	
-        	  for(Row row:updateSheet)
-              {
-        		  if(row.getRowNum()==0)
-        			  continue;
-        		  if (seqenceNumber == "" || seqenceNumber == null) {
-                		Cell valueCell = row.getCell(1);
- 						valueCell.setCellValue(updateValue);
-				}
-                 else
-                 {
-                	 Cell cell = row.getCell(0);
- 					cell.setCellType(cell.CELL_TYPE_STRING);
- 					String seqNumber = cell.getStringCellValue();
- 					System.out.println("############ " + seqNumber);
- 					if (seqNumber.equals(seqenceNumber)) {
- 						Cell valueCell = row.getCell(1);
- 						valueCell.setCellValue(updateValue);
- 					} 
-                 }
-                   
-               }
-        	
+        	Row row = updateSheet.createRow(updateSheetRowNum);
+        	for(int i=0;i<2;i++)
+        	{
+                Cell cell = row.createCell(i);
+                if(i==0)
+                	cell.setCellValue(updateRowNumber);
+                else
+                	cell.setCellValue("store value with your logic");
+
+        	}
         	
             //Write the workbook in file system
-            FileOutputStream out = new FileOutputStream(new File(sExcelPath + excelFileName));
+            FileOutputStream out = new FileOutputStream(new File(sExcelPath));
             workbook.write(out);
             out.close();
             System.out.println(sExcelPath + " written successfully on disk.");
